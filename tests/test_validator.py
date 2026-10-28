@@ -149,3 +149,10 @@ def test_parse_and_validate_category_success(input_str: str, expected_output: st
 def test_parse_and_validate_category_invalid(input_str: str, error_message: str):
     with pytest.raises(ValidationError, match=re.escape(error_message)):
         parse_and_validate_category(input_str)
+
+
+def test_parse_and_validate_category_wrong_type():
+    with pytest.raises(
+        TypeError, match="Потрібно передати рядок, що представляє категорію."
+    ):
+        parse_and_validate_category(None)

@@ -6,6 +6,8 @@ INCORRECT_DATE_FORMAT_ERROR = (
 )
 
 MAX_EXPENSE_AMOUNT = Decimal("1000000.00")
+WITHOUT_CATEGORY = "без категорії"
+MAX_CATEGORY_LENGTH = 50
 MAX_EXPENSE_AGE_YEARS = 100
 DATE_FORMATS = (
     "%Y-%m-%d",
@@ -101,4 +103,17 @@ def parse_and_validate_date(
 
 
 def parse_and_validate_category(category_str: str) -> str:
-    pass
+    if not isinstance(category_str, str):
+        raise TypeError("Потрібно передати рядок, що представляє категорію.")
+
+    cleaned_str = " ".join(category_str.split()).casefold()
+
+    if not cleaned_str:
+        return WITHOUT_CATEGORY
+
+    if len(cleaned_str) > MAX_CATEGORY_LENGTH:
+        raise ValidationError(
+            f"Назва категорії не може перевищувати {MAX_CATEGORY_LENGTH} символів."
+        )
+
+    return cleaned_str.casefold()
