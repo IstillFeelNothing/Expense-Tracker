@@ -1,20 +1,23 @@
-from decimal import Decimal
 import datetime
 import re
+from decimal import Decimal
 
 import pytest
 
 from validator import (
     ValidationError,
     parse_and_validate_amount,
+    parse_and_validate_category,
     parse_and_validate_date,
 )
 
-
 FIXED_TODAY = datetime.date(2026, 10, 28)
+FIFTY_CHARS = "a" * 50
+WITHOUT_CATEGORY = "без категорії"
 INCORRECT_DATE_FORMAT_ERROR = (
     "Некоректний формат або значення дати. Очікується YYYY-MM-DD або DD.MM.YYYY."
 )
+LEAP_TODAY_2000 = datetime.date(2000, 2, 29)
 
 
 @pytest.mark.parametrize(
@@ -63,66 +66,47 @@ def test_parse_and_validate_amount_wrong_type():
 
 
 @pytest.mark.parametrize(
-    "input_str, expected_output",
+    "input_str, today, expected_output",
     [
-        ("2023-01-01", datetime.date(2023, 1, 1)),
-        ("01.01.2023", datetime.date(2023, 1, 1)),
-        ("2023-1-1", datetime.date(2023, 1, 1)),
-        ("1.1.2023", datetime.date(2023, 1, 1)),
-        (" 01.01.2023 ", datetime.date(2023, 1, 1)),
-        ("", FIXED_TODAY),
-        ("28.10.2026", FIXED_TODAY),
-        ("28.10.1926", datetime.date(1926, 10, 28)),
+        ("2023-01-01", FIXED_TODAY, datetime.date(2023, 1, 1)),
+        ("01.01.2023", FIXED_TODAY, datetime.date(2023, 1, 1)),
+        ("2023-1-1", FIXED_TODAY, datetime.date(2023, 1, 1)),
+        ("1.1.2023", FIXED_TODAY, datetime.date(2023, 1, 1)),
+        (" 01.01.2023 ", FIXED_TODAY, datetime.date(2023, 1, 1)),
+        ("", FIXED_TODAY, FIXED_TODAY),
+        ("28.10.2026", FIXED_TODAY, FIXED_TODAY),
+        ("28.10.1926", FIXED_TODAY, datetime.date(1926, 10, 28)),
+        ("28.02.1900", LEAP_TODAY_2000, datetime.date(1900, 2, 28)),
+        ("29.02.2000", LEAP_TODAY_2000, LEAP_TODAY_2000),
     ],
 )
 def test_parse_and_validate_date_success(
-    input_str: str, expected_output: datetime.date
+    input_str: str, today: datetime.date, expected_output: datetime.date
 ):
-    assert parse_and_validate_date(input_str, today=FIXED_TODAY) == expected_output
+    assert parse_and_validate_date(input_str, today=today) == expected_output
 
 
 @pytest.mark.parametrize(
-    "input_str, error_message",
+    "input_str, today, error_message",
     [
-        (
-            "01.01.23",
-            INCORRECT_DATE_FORMAT_ERROR,
-        ),
-        (
-            "2023-13-01",
-            INCORRECT_DATE_FORMAT_ERROR,
-        ),
-        (
-            "01.13.2023",
-            INCORRECT_DATE_FORMAT_ERROR,
-        ),
-        (
-            "31.02.2026",
-            INCORRECT_DATE_FORMAT_ERROR,
-        ),
-        (
-            "2026-02-31",
-            INCORRECT_DATE_FORMAT_ERROR,
-        ),
-        (
-            "29.02.2025",
-            INCORRECT_DATE_FORMAT_ERROR,
-        ),
-        (
-            "27/10/2026",
-            INCORRECT_DATE_FORMAT_ERROR,
-        ),
-        (
-            "abc",
-            INCORRECT_DATE_FORMAT_ERROR,
-        ),
-        ("29.10.2026", "Дата не може бути в майбутньому."),
-        ("27.10.1926", "Дата не може бути старішою за 100 років."),
+        ("01.01.23", FIXED_TODAY, INCORRECT_DATE_FORMAT_ERROR),
+        ("2023-13-01", FIXED_TODAY, INCORRECT_DATE_FORMAT_ERROR),
+        ("01.13.2023", FIXED_TODAY, INCORRECT_DATE_FORMAT_ERROR),
+        ("31.02.2026", FIXED_TODAY, INCORRECT_DATE_FORMAT_ERROR),
+        ("2026-02-31", FIXED_TODAY, INCORRECT_DATE_FORMAT_ERROR),
+        ("29.02.2025", FIXED_TODAY, INCORRECT_DATE_FORMAT_ERROR),
+        ("27/10/2026", FIXED_TODAY, INCORRECT_DATE_FORMAT_ERROR),
+        ("abc", FIXED_TODAY, INCORRECT_DATE_FORMAT_ERROR),
+        ("29.10.2026", FIXED_TODAY, "Дата не може бути в майбутньому."),
+        ("27.10.1926", FIXED_TODAY, "Дата не може бути старішою за 100 років."),
+        ("27.02.1900", LEAP_TODAY_2000, "Дата не може бути старішою за 100 років."),
     ],
 )
-def test_parse_and_validate_date_invalid(input_str: str, error_message: str):
+def test_parse_and_validate_date_invalid(
+    input_str: str, today: datetime.date, error_message: str
+):
     with pytest.raises(ValidationError, match=re.escape(error_message)):
-        parse_and_validate_date(input_str, today=FIXED_TODAY)
+        parse_and_validate_date(input_str, today=today)
 
 
 def test_parse_and_validate_date_wrong_type():
@@ -130,3 +114,38 @@ def test_parse_and_validate_date_wrong_type():
         TypeError, match="Потрібно передати рядок, що представляє дату."
     ):
         parse_and_validate_date(None)
+
+
+@pytest.mark.parametrize(
+    "input_str, expected_output",
+    [
+        ("Їжа", "їжа"),
+        ("їжа", "їжа"),
+        ("ЇЖА", "їжа"),
+        ("  Їжа  ", "їжа"),
+        ("Без категорії", "без категорії"),
+        ("БЕЗ КАТЕГОРІЇ", "без категорії"),
+        ("швидка    їжа", "швидка їжа"),
+        (FIFTY_CHARS, FIFTY_CHARS),
+        (f"   {FIFTY_CHARS} ", FIFTY_CHARS),
+        ("", WITHOUT_CATEGORY),
+        ("   ", WITHOUT_CATEGORY),
+    ],
+)
+def test_parse_and_validate_category_success(input_str: str, expected_output: str):
+    assert parse_and_validate_category(input_str) == expected_output
+
+
+@pytest.mark.parametrize(
+    "input_str, error_message",
+    [
+        (FIFTY_CHARS + "a", "Назва категорії не може перевищувати 50 символів."),
+        (
+            "   " + FIFTY_CHARS + "a   ",
+            "Назва категорії не може перевищувати 50 символів.",
+        ),
+    ],
+)
+def test_parse_and_validate_category_invalid(input_str: str, error_message: str):
+    with pytest.raises(ValidationError, match=re.escape(error_message)):
+        parse_and_validate_category(input_str)

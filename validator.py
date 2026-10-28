@@ -86,11 +86,19 @@ def parse_and_validate_date(
         raise ValidationError("Дата не може бути в майбутньому.")
 
     try:
-        min_date = datetime.date(today.year - MAX_EXPENSE_AGE_YEARS, today.month, today.day)
+        min_date = datetime.date(
+            today.year - MAX_EXPENSE_AGE_YEARS, today.month, today.day
+        )
     except ValueError:
         min_date = datetime.date(today.year - MAX_EXPENSE_AGE_YEARS, today.month, 28)
 
     if parsed_date < min_date:
-        raise ValidationError(f"Дата не може бути старішою за {MAX_EXPENSE_AGE_YEARS} років.")
+        raise ValidationError(
+            f"Дата не може бути старішою за {MAX_EXPENSE_AGE_YEARS} років."
+        )
 
     return parsed_date
+
+
+def parse_and_validate_category(category_str: str) -> str:
+    pass
