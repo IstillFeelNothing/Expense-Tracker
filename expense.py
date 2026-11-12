@@ -52,7 +52,6 @@ class Expense:
                     f"Некоректний формат дати: {err}"
                 ) from err
 
-            # Обробка опису
             raw_desc = data.get("description", "")
             if raw_desc is None:
                 description = ""

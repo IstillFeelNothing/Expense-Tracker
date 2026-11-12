@@ -5,6 +5,7 @@ from typing import Any
 import pytest
 
 from json_storage import CorruptedStorageError, JSONStorage, make_empty_storage_data
+from storage_protocol import StorageError
 
 
 @pytest.fixture
@@ -143,3 +144,34 @@ def test_load_raises_corrupted_error_on_invalid_schema(
     assert not storage_path.exists()
     assert exc_info.value.backup_path.exists()
     assert "пошкоджений" in str(exc_info.value)
+
+
+def test_save_wraps_os_error_into_storage_error_and_cleans_temp_file(
+    storage: JSONStorage, storage_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def fail_replace(self: Path, target: Path) -> Path:
+        raise PermissionError("Access denied")
+
+    monkeypatch.setattr(Path, "replace", fail_replace)
+
+    with pytest.raises(StorageError) as exc_info:
+        storage.save(make_empty_storage_data())
+
+    assert isinstance(exc_info.value.__cause__, PermissionError)
+    assert list(storage_path.parent.glob("*.tmp")) == []
+
+
+def test_load_wraps_os_error_into_storage_error(
+    storage: JSONStorage, storage_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    storage_path.write_text("{}", encoding="utf-8")
+
+    def fail_open(self: Path, *args: Any, **kwargs: Any) -> Any:
+        raise PermissionError("Read denied")
+
+    monkeypatch.setattr(Path, "open", fail_open)
+
+    with pytest.raises(StorageError) as exc_info:
+        storage.load()
+
+    assert isinstance(exc_info.value.__cause__, PermissionError)
