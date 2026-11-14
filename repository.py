@@ -1,7 +1,8 @@
+from collections.abc import Callable
 from dataclasses import replace
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar, cast
 
 from expense import Expense, InvalidExpenseDataError
 from storage_protocol import (
@@ -46,7 +47,7 @@ def _require_initialized(method: F) -> F:
             )
         return method(self, *args, **kwargs)
 
-    return wrapper
+    return cast(F, wrapper)
 
 
 class ExpenseRepository:

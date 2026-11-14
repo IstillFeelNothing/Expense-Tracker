@@ -54,6 +54,7 @@ def test_app_end_to_end_edit_expense_partial_update() -> None:
     app = ExpenseApp(repo=repo, view=view, today_fn=lambda: date(2026, 11, 14))
     app.run()
 
+    assert created.expense_id is not None
     updated = repo.get_by_id(created.expense_id)
     assert updated is not None
     assert updated.amount == Decimal("150")
@@ -153,6 +154,7 @@ def test_app_end_to_end_edit_expense_clears_description_with_dash() -> None:
     app = ExpenseApp(repo=repo, view=view, today_fn=lambda: date(2026, 11, 14))
     app.run()
 
+    assert created.expense_id is not None
     updated = repo.get_by_id(created.expense_id)
     assert updated is not None
     assert updated.description == ""

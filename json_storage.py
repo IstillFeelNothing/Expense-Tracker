@@ -27,7 +27,7 @@ class JSONStorage:
 
         try:
             with self.file_path.open("r", encoding="utf-8") as f:
-                data = json.load(f)
+                data: StorageData = json.load(f)
 
             self._validate_schema(data)
             return data

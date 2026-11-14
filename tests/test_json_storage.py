@@ -4,8 +4,13 @@ from typing import Any
 
 import pytest
 
-from json_storage import CorruptedStorageError, JSONStorage, make_empty_storage_data
-from storage_protocol import StorageError
+from json_storage import JSONStorage
+from storage_protocol import (
+    CorruptedStorageError,
+    StorageData,
+    StorageError,
+    make_empty_storage_data,
+)
 
 
 @pytest.fixture
@@ -40,7 +45,7 @@ def test_load_returns_empty_data_when_file_does_not_exist(
 
 
 def test_save_and_load_valid_data(storage: JSONStorage, storage_path: Path) -> None:
-    payload = {
+    payload: StorageData = {
         "last_id": 2,
         "expenses": [
             {
@@ -82,7 +87,7 @@ def test_save_creates_atomic_file_and_leaves_no_tmp_files(
 def test_save_preserves_utf8_encoding_without_ascii_escapes(
     storage: JSONStorage, storage_path: Path
 ) -> None:
-    payload = {
+    payload: StorageData = {
         "last_id": 1,
         "expenses": [
             {

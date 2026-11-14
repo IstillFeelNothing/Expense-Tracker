@@ -32,7 +32,9 @@ LEAP_TODAY_2000 = datetime.date(2000, 2, 29)
         ("50,50", Decimal("50.50")),
     ],
 )
-def test_parse_and_validate_amount_success(input_str: str, expected_output: Decimal):
+def test_parse_and_validate_amount_success(
+    input_str: str, expected_output: Decimal
+) -> None:
     assert parse_and_validate_amount(input_str) == expected_output
 
 
@@ -53,16 +55,16 @@ def test_parse_and_validate_amount_success(input_str: str, expected_output: Deci
         ("0", "Сума витрати має бути більшою за 0."),
     ],
 )
-def test_parse_and_validate_amount_invalid(input_str: str, error_message: str):
+def test_parse_and_validate_amount_invalid(input_str: str, error_message: str) -> None:
     with pytest.raises(ValidationError, match=re.escape(error_message)):
         parse_and_validate_amount(input_str)
 
 
-def test_parse_and_validate_amount_wrong_type():
+def test_parse_and_validate_amount_wrong_type() -> None:
     with pytest.raises(
         TypeError, match="Потрібно передати рядок, що представляє число."
     ):
-        parse_and_validate_amount(None)
+        parse_and_validate_amount(None)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(
@@ -82,7 +84,7 @@ def test_parse_and_validate_amount_wrong_type():
 )
 def test_parse_and_validate_date_success(
     input_str: str, today: datetime.date, expected_output: datetime.date
-):
+) -> None:
     assert parse_and_validate_date(input_str, today=today) == expected_output
 
 
@@ -104,16 +106,16 @@ def test_parse_and_validate_date_success(
 )
 def test_parse_and_validate_date_invalid(
     input_str: str, today: datetime.date, error_message: str
-):
+) -> None:
     with pytest.raises(ValidationError, match=re.escape(error_message)):
         parse_and_validate_date(input_str, today=today)
 
 
-def test_parse_and_validate_date_wrong_type():
+def test_parse_and_validate_date_wrong_type() -> None:
     with pytest.raises(
         TypeError, match="Потрібно передати рядок, що представляє дату."
     ):
-        parse_and_validate_date(None)
+        parse_and_validate_date(None)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(
@@ -132,7 +134,9 @@ def test_parse_and_validate_date_wrong_type():
         ("   ", WITHOUT_CATEGORY),
     ],
 )
-def test_parse_and_validate_category_success(input_str: str, expected_output: str):
+def test_parse_and_validate_category_success(
+    input_str: str, expected_output: str
+) -> None:
     assert parse_and_validate_category(input_str) == expected_output
 
 
@@ -146,13 +150,15 @@ def test_parse_and_validate_category_success(input_str: str, expected_output: st
         ),
     ],
 )
-def test_parse_and_validate_category_invalid(input_str: str, error_message: str):
+def test_parse_and_validate_category_invalid(
+    input_str: str, error_message: str
+) -> None:
     with pytest.raises(ValidationError, match=re.escape(error_message)):
         parse_and_validate_category(input_str)
 
 
-def test_parse_and_validate_category_wrong_type():
+def test_parse_and_validate_category_wrong_type() -> None:
     with pytest.raises(
         TypeError, match="Потрібно передати рядок, що представляє категорію."
     ):
-        parse_and_validate_category(None)
+        parse_and_validate_category(None)  # type: ignore[arg-type]

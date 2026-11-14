@@ -18,7 +18,7 @@
 ## Вимоги
 
 - Python 3.10+ (розроблялося на 3.14)
-- Для запуску програми сторонні бібліотеки не потрібні. Для тестів потрібен `pytest`.
+- Для запуску програми сторонні бібліотеки не потрібні. Для розробки потрібні `pytest`, `ruff` і `mypy` (див. `requirements-dev.txt`).
 
 ## Запуск
 
@@ -31,11 +31,14 @@ python main.py
 ## Тести
 
 ```bash
-pip install pytest
-python -m pytest
+pip install -r requirements-dev.txt
+pytest            # тести
+ruff check .      # лінтер
+ruff format .     # форматування
+mypy              # перевірка типів (strict)
 ```
 
-Запускайте з кореня проєкту через `python -m pytest`, щоб працював імпорт `tests.fakes`.
+Налаштування всіх інструментів лежать у `pyproject.toml`. Запускайте команди з кореня проєкту.
 
 ## Архітектура
 
