@@ -16,35 +16,7 @@ from repository import (
     RepositorySaveError,
 )
 from storage_protocol import CorruptedStorageError, StorageData, StorageError
-
-
-class FakeStorage:
-    def __init__(
-        self,
-        initial_data: StorageData | None = None,
-        load_error: Exception | None = None,
-        save_error: StorageError | None = None,
-    ) -> None:
-        self.data: StorageData = initial_data or {"last_id": 0, "expenses": []}
-        self.load_error = load_error
-        self.save_error = save_error
-        self.save_calls: list[StorageData] = []
-        self.backup_called: bool = False
-
-    def load(self) -> StorageData:
-        if self.load_error is not None:
-            raise self.load_error
-        return self.data
-
-    def save(self, data: StorageData) -> None:
-        if self.save_error is not None:
-            raise self.save_error
-        self.data = data
-        self.save_calls.append(data)
-
-    def backup_corrupted_data(self) -> Path:
-        self.backup_called = True
-        return Path("fake_backup.json")
+from tests.fakes import FakeStorage
 
 
 @pytest.fixture
