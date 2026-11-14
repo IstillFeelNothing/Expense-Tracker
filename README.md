@@ -18,7 +18,7 @@
 ## Вимоги
 
 - Python 3.10+ (розроблялося на 3.14)
-- Для запуску програми сторонні бібліотеки не потрібні. Для розробки потрібні `pytest`, `ruff` і `mypy` (див. `requirements-dev.txt`).
+- Для запуску програми сторонні бібліотеки не потрібні. Для розробки потрібні `pytest`, `ruff` і `mypy` (група `dev` у `pyproject.toml`).
 
 ## Запуск
 
@@ -31,7 +31,7 @@ python main.py
 ## Тести
 
 ```bash
-pip install -r requirements-dev.txt
+pip install --group dev   # потрібен pip 25.1+
 pytest            # тести
 ruff check .      # лінтер
 ruff format .     # форматування
