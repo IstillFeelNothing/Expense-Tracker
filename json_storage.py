@@ -3,7 +3,6 @@ import os
 from datetime import datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any
 
 from storage_protocol import (
     CorruptedStorageError,
@@ -27,10 +26,9 @@ class JSONStorage:
 
         try:
             with self.file_path.open("r", encoding="utf-8") as f:
-                data: StorageData = json.load(f)
+                raw: object = json.load(f)
 
-            self._validate_schema(data)
-            return data
+            return self._parse_schema(raw)
 
         except (json.JSONDecodeError, UnicodeDecodeError, SchemaValidationError) as err:
             backup_path = self.backup_corrupted_data()
@@ -89,7 +87,8 @@ class JSONStorage:
             ) from err
         return backup_path
 
-    def _validate_schema(self, data: Any) -> None:
+    @staticmethod
+    def _parse_schema(data: object) -> StorageData:
         if not isinstance(data, dict):
             raise SchemaValidationError("Кореневий елемент не є словником")
 
@@ -107,3 +106,5 @@ class JSONStorage:
             raise SchemaValidationError(
                 "Усі елементи списку 'expenses' повинні бути словниками"
             )
+
+        return {"last_id": last_id, "expenses": expenses}

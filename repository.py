@@ -2,7 +2,7 @@ from collections.abc import Callable
 from dataclasses import replace
 from functools import wraps
 from pathlib import Path
-from typing import Any, TypeVar, cast
+from typing import Concatenate, ParamSpec, TypeVar
 
 from expense import Expense, InvalidExpenseDataError
 from storage_protocol import (
@@ -12,7 +12,8 @@ from storage_protocol import (
     StorageProtocol,
 )
 
-F = TypeVar("F", bound=Callable[..., Any])
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 class RepositoryError(Exception):
@@ -37,17 +38,18 @@ class RepositoryNotInitializedError(RuntimeError):
     pass
 
 
-def _require_initialized(method: F) -> F:
-
+def _require_initialized(
+    method: Callable[Concatenate["ExpenseRepository", P], R],
+) -> Callable[Concatenate["ExpenseRepository", P], R]:
     @wraps(method)
-    def wrapper(self: "ExpenseRepository", *args: Any, **kwargs: Any) -> Any:
+    def wrapper(self: "ExpenseRepository", /, *args: P.args, **kwargs: P.kwargs) -> R:
         if not self._is_loaded:
             raise RepositoryNotInitializedError(
                 "Репозиторій не ініціалізовано. Викличте load() перед роботою з даними."
             )
         return method(self, *args, **kwargs)
 
-    return cast(F, wrapper)
+    return wrapper
 
 
 class ExpenseRepository:
